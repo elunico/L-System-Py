@@ -1,7 +1,8 @@
 import random
 import re
+from collections.abc import Callable
 from enum import Enum
-from typing import Iterable, override
+from typing import Iterable, override, Any
 
 
 def near_equals(a, b, epsilon=1e-6):
@@ -188,36 +189,82 @@ class Filler:
     # returns [[Alphabet.A, Alphabet.B, 'cat'], [Alphabet.A, Alphabet.B, 'hat'], [Alphabet.A, Alphabet.B, 'bat']]
     can also be used to generate weighted replacements by using the weighted_spread method and including a weight
     in this case, a list of instances of WeightedReplacement will be returned instead of a list of lists of replacements
+    The weight can be a normal weight value that will apply to all elements that are generated, or it can be a function
+    that will take each generated replacement and return the weight for that replacement.
+    >>> nouns = ['cat', 'horse', 'whale', 'bat']
+    >>> Filler(Alphabet.A, Filler.VAR_POS, Alphabet.B).weighted_spread(nouns, lambda repl: 2 if len(repl[1]) > 3 else 3)
+
+    Additionally, this can be used to spread multiple values across a single rule; in this case you should use the
+    numbered VAR variables to specify the numbered element from each iterable into the fill of the supplement
+    >>> example = [(1, 2), (3, 4), (5, 6)]
+    >>> Filler(Alphabet.A, Alphabet.B, Filler.VAR_1, Alphabet.C, Filler.VAR_2, count=2).spread(example))
+    # this will return [[Alphabet.A, Alphabet.B, 1, Alphabet.C, 2], [Alphabet.A, Alphabet.B, 3, Alphabet.C, 4], [Alphabet.A, Alphabet.B, 5, Alphabet.C, 6]]
+    This is supported for up to 10 Filler variables.
+
+    Warning: do not mix VAR_POS and VAR_n variables in the same fill recipe.
     """
+
+    """For a single substitution"""
     VAR_POS = object()
 
+    """For substituting many objects into a recipe"""
+    VAR_1 = object()
+    VAR_2 = object()
+    VAR_3 = object()
+    VAR_4 = object()
+    VAR_5 = object()
+    VAR_6 = object()
+    VAR_7 = object()
+    VAR_8 = object()
+    VAR_9 = object()
+    VAR_10 = object()
+
+    POS_VARS = [VAR_1, VAR_2, VAR_3, VAR_4, VAR_5, VAR_6, VAR_7, VAR_8, VAR_9, VAR_10]
+
     def __init__(self, *recipe):
-        assert Filler.VAR_POS in recipe
         self.recipe = recipe
 
-    def spread(self, supplement):
-        results = []
-        for word in supplement:
-            result = []
-            for arg in self.recipe:
-                if arg is Filler.VAR_POS:
-                    result.append(word)
-                else:
-                    result.append(arg)
-            results.append(result)
-        return results
 
-    def weighted_spread(self, supplement, weight):
-        results = []
-        for word in supplement:
-            result = []
-            for arg in self.recipe:
-                if arg is Filler.VAR_POS:
-                    result.append(word)
+    def _spread_impl(self, supplement, weight, factory):
+        if Filler.VAR_POS in self.recipe:
+            results = []
+            for word in supplement:
+                result = []
+                for arg in self.recipe:
+                    if arg is Filler.VAR_POS:
+                        result.append(word)
+                    else:
+                        result.append(arg)
+                if callable(weight):
+                    results.append(factory(result, weight(result)))
                 else:
-                    result.append(arg)
-            results.append(WeightedReplacement(result, weight))
-        return results
+                    results.append(factory(result, weight))
+            return results
+        else:
+            results = []
+            for word in supplement:
+                result = []
+                for arg in self.recipe:
+                    if arg in Filler.POS_VARS:
+                        arg_n = Filler.POS_VARS.index(arg)
+                        try:
+                            result.append(word[arg_n])
+                        except IndexError as e:
+                            raise ValueError(f"Wrong number of items in element ({word}) of supplement") from e
+                    else:
+                        result.append(arg)
+                if callable(weight):
+                    results.append(factory(result, weight(result)))
+                else:
+                    results.append(factory(result, weight))
+            return results
+
+    def spread(self, supplement: Iterable[Any | Iterable[Any]]):
+        return self._spread_impl(supplement, None, lambda res, _: res)
+
+
+    def weighted_spread(self, supplement: Iterable[Any | Iterable[Any]], weight: float | int | Callable[[list[Any]], float | int] = 1):
+        return self._spread_impl(supplement, weight, WeightedReplacement)
 
 
 class RuleConverter:

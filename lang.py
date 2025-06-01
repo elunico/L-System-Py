@@ -51,7 +51,6 @@ v = LSystem(
         Rule(
             LangAlphabet.NOUN,
             [
-                # WeightedReplacement([LangAlphabet.DETERMINER, LangAlphabet.ADJECTIVE, "donkey "], 100),
                 *Filler(LangAlphabet.DETERMINER, LangAlphabet.ADJECTIVE, Filler.VAR_POS, ' ').spread(noun)
             ]
         ),
@@ -60,9 +59,6 @@ v = LSystem(
             LangAlphabet.PL_NOUN,
             [
                 *Filler(LangAlphabet.PL_DETERMINER, LangAlphabet.ADJECTIVE, Filler.VAR_POS, 's ').spread(noun),
-                # [LangAlphabet.PL_DETERMINER, LangAlphabet.ADJECTIVE, "cats "],
-                # [LangAlphabet.PL_DETERMINER, LangAlphabet.ADJECTIVE, "dogs "],
-                # [LangAlphabet.PL_DETERMINER, LangAlphabet.ADJECTIVE, "frogs "]
             ]
         ),
 
