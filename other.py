@@ -1,4 +1,4 @@
-from lsystem import *
+from lsystem import AlphabetEnum, WeightedReplacement, WeightedRule, LeafRule, Rule, LSystem, Axiom
 
 # new alphabet for this file. The system only checks for == so anything can be used as an alphabet as long as
 # 1) replacements are made of iterables of the same type as patterns

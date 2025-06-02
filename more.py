@@ -1,4 +1,4 @@
-from lsystem import *
+from lsystem import AlphabetEnum, RuleConverter, Axiom, LSystem
 
 class Alphabet(AlphabetEnum):
     A = 'A'

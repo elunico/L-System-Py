@@ -1,0 +1,40 @@
+%NOUN, VERB, ANY_NOUN, LIT_NOUN, PL_LIT_NOUN, PL_VERB, ADJECTIVE, PL_NOUN, DETERMINER, PL_DETERMINER, ADVERB, SUBJECT, PREDICATE
+
+@SUBJECT@
+
+$SUBJECT = NOUN VERB |
+           PL_NOUN PL_VERB
+~
+
+$DETERMINER = "the " | "a "
+~
+
+$PL_DETERMINER = "the " | "some " | "many "
+~
+
+$NOUN = DETERMINER ADJECTIVE LIT_NOUN
+~
+
+$LIT_NOUN = "cat " | "dog " | "horse "
+~
+
+$PL_NOUN = PL_DETERMINER ADJECTIVE PL_LIT_NOUN
+~
+
+$PL_LIT_NOUN = "cats " | "dogs " | "horses "
+~
+
+$ANY_NOUN = NOUN | PL_NOUN
+~
+
+$ADVERB = "" | "very " | "somewhat " | "mostly " | ADVERB ADVERB
+~
+
+$ADJECTIVE = "nice " | "happy " | "funny " | "" | ADVERB ADJECTIVE
+~
+
+$VERB = "barks at " ANY_NOUN | "sees " ANY_NOUN | "loves " ANY_NOUN | "meows at " ANY_NOUN
+~
+
+$PL_VERB = "bark at " ANY_NOUN | "see " ANY_NOUN | "love " ANY_NOUN | "meow at " ANY_NOUN
+~

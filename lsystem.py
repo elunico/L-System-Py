@@ -1,8 +1,9 @@
+import pprint
 import random
 import re
 from collections.abc import Callable
 from enum import Enum
-from typing import Iterable, override, Any
+from typing import Iterable, Sequence, override, Any
 
 
 def near_equals(a, b, epsilon=1e-6):
@@ -26,7 +27,7 @@ class AlphabetEnum(Enum):
         return f"<{self.__class__.__name__}.{self.name}: {self.value}>"
 
     def __str__(self):
-        return self.value
+        return f'{self.value}'
 
 
 class Axiom:
@@ -42,7 +43,7 @@ class Axiom:
         return "Axiom(" + "".join(map(str, self.pattern)) + ")"
 
 
-class WeightedReplacement:
+class WeightedReplacement(Sequence[AlphabetEnum | str]):
     """
     Represents a single replacement in a WeightedRule.
     The replacement is a list of Alphabet cases.
@@ -77,7 +78,7 @@ class Rule:
     saying this is to use the LeafRule.
     """
 
-    def __init__(self, pattern: AlphabetEnum, replacements: list[Iterable[AlphabetEnum | str]]):
+    def __init__(self, pattern: AlphabetEnum, replacements: Sequence[Sequence[AlphabetEnum | str]]):
         """
         Initialize the rule
         :param pattern: the pattern to search for
@@ -95,6 +96,8 @@ class Rule:
     def __str__(self):
         return "Rule(" + str(self.pattern) + " -> " + str(self.replacements) + ")"
 
+    def __repr__(self):
+        return "Rule(" + repr(self.pattern) + ", " + repr(self.replacements) + ")"
 
 class LeafRule(Rule):
     def __init__(self, pattern: AlphabetEnum):
@@ -116,8 +119,9 @@ class WeightedRule(Rule):
     """
     replacements: list[WeightedReplacement]
 
-    def __init__(self, pattern: AlphabetEnum, replacements: list[WeightedReplacement]):
-        super().__init__(pattern, sorted(replacements, key=lambda x: x.weight, reverse=True))
+    def __init__(self, pattern: AlphabetEnum, replacements: Sequence[WeightedReplacement]):
+        replacements = list(sorted(replacements, key=lambda x: x.weight, reverse=True))
+        super().__init__(pattern, replacements)
         total = 0
         all_int = True
         for replacement in self.replacements:
@@ -147,8 +151,20 @@ class WeightedRule(Rule):
     def get_replacement(self):
         return self.random_weighted_choice()
 
+    def __repr__(self):
+        return "WeightedRule(" + repr(self.pattern) + ", " + repr(self.replacements) + ")"
+
 
 class LSystem:
+    """
+    Represents an L-System. Constructed from an axiom and a list of rules
+
+    Can be used to generate a string of symbols by calling the expand method. A generator is returned that can be used
+    to iterate over the axiom and each successive expansion and apply the rules. This is most useful for infinite L-Systems.
+
+    Can also be used to generate a single string of symbols by calling the realize method. This will return a string
+    all at once and is good for systems which have terminal states and will eventually stop.
+    """
     def __init__(self, axiom: Axiom, rules: list[Rule], /, warn=True):
         self.axiom = axiom
         self.rules = rules
@@ -177,7 +193,13 @@ class LSystem:
         result = None
         for i in f:
             result = i
-        return ''.join(result)
+        return ''.join(str(result))
+
+    def __repr__(self) -> str:
+        return f'LSystem(axiom={repr(self.axiom)}, rules={pprint.pformat(self.rules)})'
+    
+    def __str__(self) -> str:
+        return repr(self)
 
 
 class Filler:
