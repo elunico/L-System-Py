@@ -33,5 +33,6 @@ a single replacement case. The rule is terminated by placing a `~` after all rep
 Example
 ```aiignore
 $NOUN = "dog " | "cat " | "house party " | ADJECTIVE NOUN 
+~
 
 ```
