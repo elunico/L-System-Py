@@ -14,22 +14,40 @@ class GenAlphabet(AlphabetEnum):
     A = auto()
 
 class BufFile:
-    def __init__(self, f):
+    def __init__(self, f, chunk_size = 1024):
         self.f = f
         self.buf = collections.deque()
-
-    def read(self, n):
-        if self.buf:
-            content = ''.join(self.buf.pop() for _ in range(min(n, len(self.buf))))
-            if len(content) == n:
-                return content
-            else:
-                return content + self.f.read(n - len(content))
-        else:
-            return self.f.read(n)
+        self.chunk_size = chunk_size
 
     def unget(self, c):
         self.buf.appendleft(c)
+
+    def discard_if(self, c):
+        if self.peek() == c:
+            self.get()
+            return True
+        return False
+
+    def expect(self, c):
+        if self.peek() != c:
+            raise ValueError(f"Expected {c} but got {self.peek()}")
+        self.get()
+
+    def peek(self):
+        if not self.buf:
+            self.buf.extend(self.f.read(self.chunk_size))
+            if not self.buf:
+               return ''
+
+        return self.buf[0]
+
+    def get(self):
+        if not self.buf:
+            self.buf.extend(self.f.read(self.chunk_size))
+            if not self.buf:
+                return ''
+
+        return self.buf.popleft()
 
 
 class LParser:
@@ -38,31 +56,31 @@ class LParser:
 
     def _consume_to_line_end(self, f):
         res = []
-        c = f.read(1)
+        c = f.get()
         while c != '\n':
             res.append(c)
-            c = f.read(1)
+            c = f.get()
         f.unget(c)
         return ''.join(res)
 
     def _consume_until_r(self, f, reg):
         res = []
-        x = f.read(1)
+        x = f.get()
         while not (reg.match(x)):
             if x != '\n':
                 res.append(x)
-            x = f.read(1)
+            x = f.get()
         f.unget(x)
         return ''.join(res)
 
     def _consume_until(self, f, *c):
         c = set(c)
         res = []
-        x = f.read(1)
+        x = f.get()
         while x not in c:
             if x != '\n':
                 res.append(x)
-            x = f.read(1)
+            x = f.get()
         f.unget(x)
         return ''.join(res)
 
@@ -73,7 +91,7 @@ class LParser:
             replacements = collections.defaultdict(list)
 
             while True:
-                c = f.read(1)
+                c = f.get()
                 if c == '':
                     break
                 if c == '#':
@@ -104,8 +122,7 @@ class LParser:
                             replacements[pattern].append(WeightedReplacement(repl_parts, weight))
                             # clear the case until the |
                             self._consume_until(f, '|', '~')
-                            if (c := f.read(1)) == '~': # discard | but not ~
-                                f.unget(c)
+                            f.discard_if('|')
 
                         else:
                             replacements[pattern].append(repl_parts)
@@ -138,7 +155,7 @@ class LParser:
         return axiom, rules
 
     def consume_replacement_case(self, f, repl_parts):
-        c = f.read(1)
+        c = f.get()
         if c == '"':
             repl = self.consume_literal(f)
             repl_parts.append(repl)
@@ -160,7 +177,7 @@ class LParser:
 
     def consume_axiom(self, axiom, f):
         axiom_str = self._consume_until(f, '@')
-        f.read(1)  # discard terminal @ sign
+        f.get()  # discard terminal @ sign
         axiom = comma_sep.split(axiom_str)
         return axiom
 
@@ -173,7 +190,7 @@ class LParser:
     def consume_weight(self, f):
         w = ''
         while True:
-            c = f.read(1)
+            c = f.get()
             if not c.isdigit() and not c == '.':
                 break
             w += c
