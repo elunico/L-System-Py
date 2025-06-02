@@ -6,7 +6,7 @@ from enum import auto
 
 comma_sep = re.compile(r'\s*?,\s*')
 space_sep = re.compile(r'(\s+)')
-literal_terminal = re.compile(r'[\w_|\n]')
+literal_terminal = re.compile(r'[\w_|:\n]')
 
 
 # this is here to prevent static type error and code cleanup from removing imports
@@ -96,16 +96,21 @@ class LParser:
                         while True:
                             c = self.consume_replacement_case(f, repl_parts)
 
-                            if c == '|' or c == '~' or c == ':':
+                            if c == '|' or c == '~' or c == ':' or c == '~' or c == '':
                                 break
 
                         if c == ':':
                             c, weight = self.consume_weight(f)
                             replacements[pattern].append(WeightedReplacement(repl_parts, weight))
+                            # clear the case until the |
+                            self._consume_until(f, '|', '~')
+                            if (c := f.read(1)) == '~': # discard | but not ~
+                                f.unget(c)
+
                         else:
                             replacements[pattern].append(repl_parts)
 
-                        if c == '~':
+                        if c == '~' or c == '':
                             break
 
         if letters is None:
@@ -141,6 +146,8 @@ class LParser:
             f.unget(c)
             repl = self.consume_letter(f)
             repl_parts.append(repl)
+        elif c == '':
+            return c
         return c
 
     def consume_alphabet(self, f):

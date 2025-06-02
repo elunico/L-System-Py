@@ -43,7 +43,7 @@ class Axiom:
         return "Axiom(" + "".join(map(str, self.pattern)) + ")"
 
 
-class WeightedReplacement(Sequence[AlphabetEnum | str]):
+class WeightedReplacement:
     """
     Represents a single replacement in a WeightedRule.
     The replacement is a list of Alphabet cases.

@@ -36,3 +36,16 @@ $NOUN = "dog " | "cat " | "house party " | ADJECTIVE NOUN
 ~
 
 ```
+
+Additionally, weights can be supplied at the end of each case after a colon but before the case-terminating `|`. If one 
+possible replacement case has a weight then **all cases** in that rule must be given a weight
+
+Example
+```aiignore
+$NOUN = "dog ":5 | "cat ":5 | "house party ":2 | ADJECTIVE NOUN:8
+~
+```
+
+This will result in 5/20s of the time getting dog, 5/20 of the time getting cat, 2/20 of the time getting "house party" and 8/20 of the time getting `ADJECTIVE NOUN`
+
+Weights can also be specified in decimal form as a percent-chance to select that case

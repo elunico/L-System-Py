@@ -2,10 +2,10 @@
 
 @A,C,A@
 
-$A = "A terminal B C"
+$A = A "terminal" B C
 ~
 
-$B = "A" | "C"
+$B = A | C | E
 ~
 
 # weighted with floats
@@ -13,9 +13,9 @@ $C = "terminal2":0.33 |
       "terminal3":0.67
 ~
 
-$D = "C" | "A" | "AB"
+$D = C | A | A B
 ~
 
 # weighted with ints
-$E = "A ter":10 | "B ter":5
+$E = A "ter":10 | B "ter":5
 ~
