@@ -213,10 +213,14 @@ class LParser:
         return repl
 
 
-p = LParser('lang-sys.lsys')
-cls, system = p.parse()
-print(system)
-g = system.expand()
-for i in g:
-    print(''.join(map(str, i)))
-    input()
+def main():
+    p = LParser('lsys-files/lang-sys.lsys')
+    cls, system = p.parse()
+    print(system)
+    g = system.expand()
+    for i in g:
+        print(''.join(map(str, i)))
+        input()
+
+if __name__ == '__main__':
+    main()

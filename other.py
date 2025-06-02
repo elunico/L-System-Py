@@ -13,10 +13,10 @@ class Alphabet(AlphabetEnum):
 wc = WeightedRule(
     Alphabet.C,
     [
-        WeightedReplacement([Alphabet.D, Alphabet.B], 0.165),
-        WeightedReplacement([Alphabet.B, Alphabet.A], 0.165),
-        WeightedReplacement([Alphabet.C, Alphabet.D], 0.0825),
-        WeightedReplacement([Alphabet.B, Alphabet.C, Alphabet.A], 1 - 0.0825 - 0.165 - 0.165),
+        WeightedReplacement([Alphabet.D, Alphabet.B], 17),
+        WeightedReplacement([Alphabet.B, Alphabet.A], 17),
+        WeightedReplacement([Alphabet.C, Alphabet.D], 8),
+        WeightedReplacement([Alphabet.B, Alphabet.C, Alphabet.A], 59),
     ]
 )
 
